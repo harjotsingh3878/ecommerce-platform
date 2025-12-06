@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  createOrder,
   getUserOrders,
   getOrderById,
   getAllOrders,
@@ -10,6 +11,7 @@ import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+router.post('/', protect, createOrder);
 router.get('/', protect, getUserOrders);
 router.get('/admin/all', protect, admin, getAllOrders);
 router.get('/admin/stats', protect, admin, getOrderStats);

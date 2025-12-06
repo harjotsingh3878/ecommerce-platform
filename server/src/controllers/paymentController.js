@@ -2,13 +2,19 @@ import Stripe from 'stripe';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured in environment variables');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+};
 
 // @desc    Create payment intent
 // @route   POST /api/payments/create-payment-intent
 // @access  Private
 export const createPaymentIntent = async (req, res) => {
   try {
+    const stripe = getStripe();
     const { items, shippingAddress } = req.body;
 
     if (!items || items.length === 0) {
@@ -90,6 +96,7 @@ export const createPaymentIntent = async (req, res) => {
 // @access  Private
 export const confirmPayment = async (req, res) => {
   try {
+    const stripe = getStripe();
     const { paymentIntentId, items, shippingAddress } = req.body;
 
     // Verify payment intent with Stripe
@@ -165,6 +172,7 @@ export const stripeWebhook = async (req, res) => {
   let event;
 
   try {
+    const stripe = getStripe();
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,

@@ -9,6 +9,11 @@ interface OrdersResponse {
 }
 
 export const orderService = {
+  createOrder: async (orderData: any): Promise<Order> => {
+    const response = await api.post('/orders', orderData);
+    return response.data;
+  },
+
   getUserOrders: async (): Promise<Order[]> => {
     const response = await api.get('/orders');
     return response.data;

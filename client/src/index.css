@@ -151,6 +151,17 @@ img {
   .grid-2, .grid-3, .grid-4 {
     grid-template-columns: 1fr;
   }
+
+  .cart-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 32px;
+  align-items: start;
 }
 
 .loading {

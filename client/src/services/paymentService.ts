@@ -4,14 +4,6 @@ import { PaymentIntentResponse } from '../../../shared/types.js';
 
 let stripePromise: Promise<Stripe | null>;
 
-export const getStripe = () => {
-  if (!stripePromise) {
-    stripePromise = api.get('/payments/config')
-      .then(res => loadStripe(res.data.publishableKey));
-  }
-  return stripePromise;
-};
-
 interface CreatePaymentIntentData {
   items: Array<{
     productId: string;
@@ -21,6 +13,14 @@ interface CreatePaymentIntentData {
 }
 
 export const paymentService = {
+  getStripe: () => {
+    if (!stripePromise) {
+      stripePromise = api.get('/payments/config')
+        .then(res => loadStripe(res.data.publishableKey));
+    }
+    return stripePromise;
+  },
+
   createPaymentIntent: async (data: CreatePaymentIntentData): Promise<PaymentIntentResponse> => {
     const response = await api.post('/payments/create-payment-intent', data);
     return response.data;

@@ -1,5 +1,47 @@
 import Order from '../models/Order.js';
 
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private
+export const createOrder = async (req, res) => {
+  try {
+    const {
+      items,
+      shippingAddress,
+      paymentMethod,
+      paymentResult,
+      subtotal,
+      tax,
+      shippingCost,
+      total
+    } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No order items' });
+    }
+
+    const order = await Order.create({
+      user: req.user._id,
+      items,
+      shippingAddress,
+      paymentMethod,
+      paymentResult,
+      subtotal,
+      tax,
+      shippingCost,
+      total,
+      isPaid: true,
+      paidAt: new Date(),
+      status: 'processing'
+    });
+
+    res.status(201).json(order);
+  } catch (error) {
+    console.error('Create order error:', error);
+    res.status(500).json({ message: 'Failed to create order', error: error.message });
+  }
+};
+
 // @desc    Get user orders
 // @route   GET /api/orders
 // @access  Private
@@ -153,8 +195,19 @@ export const getOrderStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
+    // Get total products and customers
+    const Product = (await import('../models/Product.js')).default;
+    const User = (await import('../models/User.js')).default;
+    
+    const totalProducts = await Product.countDocuments({ isActive: true });
+    const totalCustomers = await User.countDocuments({ role: 'customer' });
+
     res.json({
-      summary: stats[0] || { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 },
+      totalRevenue: stats[0]?.totalRevenue || 0,
+      totalOrders: stats[0]?.totalOrders || 0,
+      averageOrderValue: stats[0]?.averageOrderValue || 0,
+      totalProducts,
+      totalCustomers,
       statusBreakdown,
       revenueByDay
     });
