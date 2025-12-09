@@ -1,0 +1,51 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  deploy-backend-staging:
+    name: Deploy Backend to Staging
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to Render Staging
+      run: |
+        if [ -n "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" ]; then
+          curl -X POST ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+          echo "✅ Backend staging deployment triggered"
+        else
+          echo "⚠️ Staging deploy hook not configured"
+        fi
+
+  deploy-frontend-staging:
+    name: Deploy Frontend to Staging
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+    
+    - name: Deploy to Vercel Preview
+      working-directory: ./client
+      run: |
+        vercel deploy --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
+        cat deployment-url.txt
+      env:
+        VITE_API_URL: ${{ secrets.VITE_STAGING_API_URL }}
+    
+    - name: Deployment Summary
+      run: echo "✅ Staging deployment complete"

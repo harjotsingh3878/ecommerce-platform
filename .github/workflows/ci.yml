@@ -1,0 +1,112 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Backend Tests and Linting
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./server
+      run: npm ci
+    
+    - name: Run linter
+      working-directory: ./server
+      run: npm run lint --if-present
+    
+    - name: Run tests
+      working-directory: ./server
+      run: npm test --if-present
+      env:
+        NODE_ENV: test
+        MONGODB_URI: ${{ secrets.MONGODB_TEST_URI }}
+        JWT_SECRET: test-secret-key
+
+  # Frontend Tests and Build
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Run linter
+      working-directory: ./client
+      run: npm run lint --if-present
+    
+    - name: Type check
+      working-directory: ./client
+      run: npx tsc --noEmit
+    
+    - name: Run tests
+      working-directory: ./client
+      run: npm test --if-present
+    
+    - name: Build application
+      working-directory: ./client
+      run: npm run build
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: client-build-${{ matrix.node-version }}
+        path: client/dist
+        retention-days: 7
+
+  # Security Scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run npm audit (Backend)
+      working-directory: ./server
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+    
+    - name: Run npm audit (Frontend)
+      working-directory: ./client
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
