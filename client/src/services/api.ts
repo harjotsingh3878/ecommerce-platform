@@ -1,6 +1,13 @@
 import axios from 'axios';
 
+// Debug: Log the environment variable
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('All env vars:', import.meta.env);
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
+console.log('Computed API_URL:', API_URL);
+console.log('Final baseURL:', `${API_URL}/api`);
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
