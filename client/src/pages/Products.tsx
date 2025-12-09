@@ -37,13 +37,15 @@ const Products = () => {
     );
   }
 
-  if (isError) {
+  if (isError || !data || !data.products) {
     return (
       <div className="container" style={{ padding: '40px 20px', textAlign: 'center' }}>
         <p>Error loading products. Please try again later.</p>
       </div>
     );
   }
+
+  const products = data.products || [];
 
   return (
     <div className="container" style={{ padding: '40px 20px' }}>
@@ -86,11 +88,11 @@ const Products = () => {
       </div>
 
       {/* Products Grid */}
-      {data?.products.length === 0 ? (
+      {products.length === 0 ? (
         <p>No products found.</p>
       ) : (
         <div className="grid grid-3" style={{ gap: '24px' }}>
-          {data?.products.map((product) => (
+          {products.map((product) => (
             <div key={product._id} className="product-card" style={{
               background: 'white',
               borderRadius: '8px',
