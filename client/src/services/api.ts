@@ -1,12 +1,13 @@
 import axios from 'axios';
 
-// Debug: Log the environment variable
-console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-console.log('All env vars:', import.meta.env);
+// Get API URL from environment or use localhost as fallback
+// Reject invalid values like "-" or empty strings
+const envApiUrl = import.meta.env.VITE_API_URL;
+const isValidUrl = envApiUrl && envApiUrl !== '-' && envApiUrl.trim() !== '' && envApiUrl.startsWith('http');
+const API_URL = isValidUrl ? envApiUrl : 'http://localhost:5001';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-
-console.log('Computed API_URL:', API_URL);
+console.log('Environment VITE_API_URL:', envApiUrl);
+console.log('Using API_URL:', API_URL);
 console.log('Final baseURL:', `${API_URL}/api`);
 
 const api = axios.create({
